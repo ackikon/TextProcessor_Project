@@ -1,6 +1,5 @@
 fun stringManualInput(): String {
     val stringBuilder = StringBuilder()
-    println("---")
     while(true) {
         print("Enter text (enter a blank line to end): ")
         val appendString = readln()

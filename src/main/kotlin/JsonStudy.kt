@@ -1,20 +1,21 @@
-import com.squareup.moshi.JsonClass
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
-@JsonClass(generateAdapter = true)
-data class Student(
+@Serializable
+class Student(
     val name: String,
-    val age: Int,
     val friends: List<String>,
     val grades: Map<String, String>
 ){
+    val age: Int = 0
     override fun toString(): String {
         return "Student(name='$name', age=$age, friends=$friends, grades=$grades)"
     }
 }
 
-@JsonClass(generateAdapter = true)
+@Serializable
 class Human(
     var name: String,
     var age: Int,
@@ -23,33 +24,22 @@ class Human(
 
 fun main() {
 
-
-    val moshi = Moshi.Builder().build()
-
     val human = Human("Lepeha", 52, listOf("Sas", "Nos", "Os"))
-    var humanAdapter = moshi.adapter(Human::class.java)
-    val humanInJson = humanAdapter.toJson(human)
+    val humanData = Json.encodeToString(human)
     println("-----")
     println("We created object of class Human: [$human]")
-    println("We converted class to string value of Json format (SERIALIZE) $humanInJson")
-    println("First symbol of string: ${humanInJson[0]} ")
-    val stringToJson = humanAdapter.fromJson(humanInJson)
-    println("We convert string value of Json to Human object back (DESERIALIZE) [$stringToJson] and can get items [${stringToJson?.name}]")
+    println("We converted class to string value of Json format (SERIALIZE) $humanData")
+    println("First symbol of string: ${humanData[0]} ")
+    val stringToJson = Json.decodeFromString<Human>(humanData)
+    println("We convert string value of Json to Human object back (DESERIALIZE) [$stringToJson] and can get items [${stringToJson.name}]")
     print("-----\n")
 
     /**
     * Here we're creating new type of List, that contains Human class objects, to store them in Json format
     * **/
     val listOfHumans = listOf(human, human)
-    val type = Types.newParameterizedType(List::class.java, Human::class.java)
-
-    /**
-    * can't reassign adapter var (like humanAdapter above), we need to create new one
-    * **/
-    // humanAdapter = moshi.adapter<List<Human?>>(type)
-    val humansAdapter = moshi.adapter<List<Human?>>(type)
-    val humansInJson = humansAdapter.toJson(listOfHumans)
-    println("Here we created string with value of Json from object of class Human in list (SERIALIZE) $humansInJson")
+    val dataHumans = Json.encodeToString(listOfHumans)
+    println("Here we created string with value of Json from object of class Human in list (SERIALIZE) $dataHumans")
     print("-----\n")
 
     val jsonString = """
@@ -57,38 +47,33 @@ fun main() {
        {"name":"John","age":25,"friends":[]},
        {"name":"Kate","age":40,"friends":[]}]
        """.trimIndent()
-    val newHumansList = humansAdapter.nullSafe().fromJson(jsonString)
+    val newHumansList = Json.decodeFromString<List<Human>>(jsonString)
 
-    /**
-    * We need to double-check null's in List and Human before access them
-    * **/
-    if (newHumansList != null) {
-        val name = newHumansList[0]?.name ?: "empty"
-        println("Name: $name")
+    val name = newHumansList[0].name
+    println("Name: $name")
 
-        for (human in newHumansList) {
-            if (human != null) println("${human.name} ${human.age} ${human.friends}")
-        }
+    for (human in newHumansList) {
+        println("${human.name} ${human.age} ${human.friends}")
     }
+
     print("-----\n")
 
-    val newMoshitype = Types.newParameterizedType(List::class.java, Student::class.java)
-    val humanAdapterWithMap = moshi.adapter<List<Student?>>(newMoshitype)
-    val jsonStringWithMap = """[{"name":"Ruslan","age":20,"friends":["Victoria","Valery"],
+    val jsonStringWithMap = """
+        [{"name":"Ruslan","age":20,"friends":["Victoria","Valery"],
         "grades":{"Math":"A","Philosophy":"F","Physics":"D"}},
         {"name":"Victoria","age":35,"friends":["Ruslan","Anastasia"],
-        "grades":{"Math":"B","Philosophy":"C","Physics":"B"}}]""".trimIndent()
-    val objectOfStudents = humanAdapterWithMap.fromJson(jsonStringWithMap)
+        "grades":{"Math":"B","Philosophy":"C","Physics":"B"}}]
+        """.trimIndent()
+    val objectOfStudents = Json.decodeFromString<List<Student>>(jsonStringWithMap)
     println(objectOfStudents)
 
-    if (objectOfStudents != null) {
-        for (student in objectOfStudents) {
-            if (student != null) {
-                print(student.grades.keys)
-                print(student.grades.values)
-            }
-        }
+
+    for (student in objectOfStudents) {
+        print(student.grades.keys)
+        print(student.grades.values)
     }
+
+
 
 
 
