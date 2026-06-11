@@ -50,13 +50,31 @@ fun main() {
 
     for (unformattedString in unformattedStringList) {
 
-        var formattedString = unformattedString.replace("\\s*(?<value>\\w+)\\s*".toRegex(), "\${value} ")
-        //formattedString = formattedString.replace("^\\s".toRegex(), "")
-        formattedString = formattedString.replace("\\s?(?<value>[(\\[{])\\s?".toRegex(), " \${value}")
-        formattedString = formattedString.replace("\\s?(?<value>[)\\]}])\\s?".toRegex(), "\${value} ")
-        val regex1 = "\\s*(?<value>[^a-zA-Z0-9\\s'()\\[\\]{}])\\s*".toRegex()
-        formattedString = formattedString.replace(regex1, "\${value} ")
-        formattedString = formattedString.dropLast(1)
+        var formattedString = unformattedString.replace("\\s*(?<value>\\S+)\\s*".toRegex(), "\${value} ")
+        // old code
+        // formattedString = formattedString.replace("^\\s".toRegex(), "")
+
+        // old code
+        // formattedString = formattedString.replace("\\s?(?<value>[(\\[{])\\s?".toRegex(), " \${value}")
+        // old code
+        // formattedString = formattedString.replace("\\s?(?<value>[)\\]}])\\s?".toRegex(), "\${value} ")
+
+        // old code
+        // formattedString = formattedString.replace("(?<value1>[()\\[\\]{}]+) (?<value2>[()\\[\\]{}]+)".toRegex(), "\${value1}\${value2}")
+        // old code
+        // formattedString = formattedString.replace("(?<value1>[()\\[\\]{}]+) (?<value2>[()\\[\\]{}]+)".toRegex(), "\${value1}\${value2}")
+
+        // search left-side bracket and "end" symbols with whitespace after to remove whitespace
+        formattedString = formattedString.replace("(?<value>[(\\[{!.?]+) ".toRegex(), "\${value}")
+        // search right-side bracket and "end" symbols with whitespace after to remove whitespace
+        formattedString = formattedString.replace(" (?<value>[)\\]}!.?]+)".toRegex(), "\${value}")
+
+        // search any symbol except left-side bracket or dash with left-side bracket or dash after it and make exactly one whitespace between them
+        formattedString = formattedString.replace("(?<value1>[^({\\[-])\\s*(?<value2>[({\\[-])".toRegex(), "\${value1} \${value2}")
+        // search right-side bracket or dash with any symbol except right-side bracket or dash after it and make exactly one whitespace between them
+        formattedString = formattedString.replace("(?<value1>[)}\\]-])\\s*(?<value2>[^)}\\]-])".toRegex(), "\${value1} \${value2}")
+        //formattedString = formattedString.replace("\\s*(?<value>[^a-zA-Z0-9\\s'()\\[\\]{}])\\s*".toRegex(), "\${value} ")
+        //formattedString = formattedString.dropLast(1)
 
         println(formattedString)
     }
